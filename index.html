@@ -765,16 +765,20 @@
         });
 
         // --- OTP Auth Flow (Fetch API) ---
-        document.getElementById('send-otp-btn').addEventListener('click', async () => {
+                document.getElementById('send-otp-btn').addEventListener('click', async () => {
             const email = document.getElementById('email-input').value.trim();
             const username = document.getElementById('username-input').value.trim();
             const errBox = document.getElementById('req-error');
+            const btn = document.getElementById('send-otp-btn'); // Button ka reference
 
             if (!email || !username) { errBox.innerText = "Both fields are required."; return; }
             errBox.innerText = "";
 
+            // Button ko loading state mein daal do
+            btn.innerText = "Connecting to server...";
+            btn.disabled = true;
+
             try {
-                // 7. Update fetch calls to use absolute BACKEND_URL
                 const res = await fetch(`${BACKEND_URL}/send_otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -783,12 +787,10 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    // Switch to Step B
                     requestForm.style.display = 'none';
                     verifyForm.style.display = 'block';
                     document.getElementById('otp-sent-msg').innerText = `An OTP has been sent to ${email}.`;
 
-                    // Start 5 min countdown timer
                     let timeLeft = 300;
                     const timerDisplay = document.getElementById('otp-timer');
                     otpTimerInterval = setInterval(() => {
@@ -806,9 +808,12 @@
                 }
             } catch (err) {
                 errBox.innerText = "Network error. Is the backend server running?";
+            } finally {
+                // Chahe success ho ya fail, button ko wapas normal kar do
+                btn.innerText = "Generate Access Code";
+                btn.disabled = false;
             }
         });
-
         document.getElementById('verify-otp-btn').addEventListener('click', async () => {
             const email = document.getElementById('email-input').value.trim().toLowerCase();
             const otp = document.getElementById('otp-input').value.trim();
